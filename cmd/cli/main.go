@@ -20,8 +20,15 @@ func main() {
 	collectionID := flag.String("collection-id", "", "Filter by collection ID")
 	collectionName := flag.String("collection-name", "", "Filter by collection name")
 	game := flag.String("game", "", "Filter by game name")
+	listCollections := flag.String("list-collections", "", "Search for collections by name")
 
 	flag.Parse()
+
+	// If list-collections flag is provided, just list collections and exit
+	if *listCollections != "" {
+		listCollectionsMode(*jsonPath, *listCollections)
+		return
+	}
 
 	// Interactive mode if no flags provided
 	if flag.NFlag() == 0 {
@@ -82,6 +89,23 @@ func main() {
 	}
 }
 
+func listCollectionsMode(jsonPath, searchTerm string) {
+	clips, err := clip.LoadClipsFromFile(jsonPath)
+	if err != nil {
+		fmt.Printf("Error loading clips: %v\n", err)
+		os.Exit(1)
+	}
+	
+	allCollections := clip.GetAllCollections(clips)
+	
+	if searchTerm != "" {
+		matchingCollections := clip.SearchCollectionsByName(allCollections, searchTerm)
+		clip.PrintCollections(matchingCollections)
+	} else {
+		clip.PrintCollections(allCollections)
+	}
+}
+
 func interactiveMode() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -100,6 +124,27 @@ func interactiveMode() {
 	if err != nil {
 		fmt.Printf("Error loading clips: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Offer to list collections first
+	fmt.Print("Do you want to search for collections first? (y/N): ")
+	searchCollections, _ := reader.ReadString('\n')
+	searchCollections = strings.TrimSpace(strings.ToLower(searchCollections))
+	
+	if searchCollections == "y" || searchCollections == "yes" {
+		fmt.Print("Enter collection name to search for (leave empty to list all): ")
+		collectionSearch, _ := reader.ReadString('\n')
+		collectionSearch = strings.TrimSpace(collectionSearch)
+		
+		allCollections := clip.GetAllCollections(clips)
+		if collectionSearch != "" {
+			matchingCollections := clip.SearchCollectionsByName(allCollections, collectionSearch)
+			clip.PrintCollections(matchingCollections)
+		} else {
+			clip.PrintCollections(allCollections)
+		}
+		
+		fmt.Println() // Add a blank line
 	}
 
 	// Get filters
