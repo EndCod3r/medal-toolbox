@@ -54,3 +54,7 @@ func PrintCollections(collections []CollectionInfo) {
 		fmt.Printf("  ID: %s, Name: %s\n", collection.ID, collection.Name)
 	}
 }
+
+func (c CollectionInfo) String() string {
+	return fmt.Sprintf("%s (%s)", c.Name, c.ID)
+}

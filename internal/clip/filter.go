@@ -33,9 +33,11 @@ func matchesFilter(clip Clip, options FilterOptions) bool {
 		return false
 	}
 
-	if options.Game != "" && clip.Content.Category.CategoryName != "" &&
-		!strings.Contains(strings.ToLower(clip.Content.Category.CategoryName), strings.ToLower(options.Game)) {
-		return false
+	if options.Game != "" {
+		gameName := clip.GetGameName()
+		if gameName == "" || !strings.Contains(strings.ToLower(gameName), strings.ToLower(options.Game)) {
+			return false
+		}
 	}
 
 	if options.CollectionID != "" || options.CollectionName != "" {
